@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
+
+
 export default function AuthPage() {
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [registerForm, setRegisterForm] = useState({
@@ -12,6 +14,17 @@ export default function AuthPage() {
     email: "",
     password: "",
   });
+
+  const handleLogin = async () => {
+
+  window.location.href = "/dashboard";
+};
+
+  const handleRegister = async () => {
+
+  alert("Registration successful! Check your email to verify.");
+};
+
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-linear-to-br from-primary/10 via-background to-secondary/10">
@@ -38,7 +51,29 @@ export default function AuthPage() {
 
           {/* LOGIN TAB */}
           <TabsContent value="login">
-            <form className="space-y-4">
+            <form
+              className="space-y-4"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  const res = await fetch("/api/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(loginForm),
+                  });
+
+                  const data = await res.json();
+
+                  if (!res.ok) return alert(data.message);
+
+                  alert("Login successful!");
+                  window.location.href = "/dashboard";
+                } catch (err) {
+                  console.error(err);
+                  alert("Something went wrong");
+                }
+              }}
+            >
               <Input
                 name="email"
                 placeholder="example@email.com"
@@ -56,13 +91,40 @@ export default function AuthPage() {
                   setLoginForm({ ...loginForm, password: e.target.value })
                 }
               />
-              <Button className="w-full bg-indigo-600">Login</Button>
+              <Button
+                onClick={handleLogin}
+                type="submit"
+                className="w-full bg-indigo-600"
+              >
+                Login
+              </Button>
             </form>
           </TabsContent>
 
           {/* REGISTER TAB */}
           <TabsContent value="register">
-            <form className="space-y-4">
+            <form
+              className="space-y-4"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  const res = await fetch("/api/register", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(registerForm),
+                  });
+
+                  const data = await res.json();
+
+                  if (!res.ok) return alert(data.error);
+
+                  alert("Registered successfully! You can now login.");
+                } catch (err) {
+                  console.error(err);
+                  alert("Something went wrong");
+                }
+              }}
+            >
               <Input
                 name="name"
                 placeholder="Full Name"
@@ -88,7 +150,9 @@ export default function AuthPage() {
                   setRegisterForm({ ...registerForm, password: e.target.value })
                 }
               />
-              <Button className="w-full bg-indigo-600">Register</Button>
+              <Button onClick={handleRegister} type="submit" className="w-full bg-indigo-600">
+                Register
+              </Button>
             </form>
           </TabsContent>
         </Tabs>
