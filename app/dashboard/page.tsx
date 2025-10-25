@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   Loader2,
   Plus,
@@ -15,16 +13,20 @@ import {
   CheckCircle,
   CircleCheck,
 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 export default function Dashboard() {
   const [todos, setTodos] = useState<any[]>([]);
   const [newTodo, setNewTodo] = useState("");
   const [isAdding, setIsAdding] = useState(false);
 
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editedText, setEditedText] = useState("");
+
   const addTodo = (e: any) => {
     e.preventDefault();
     if (!newTodo.trim()) return;
-
     setIsAdding(true);
 
     const todo = {
@@ -54,8 +56,19 @@ export default function Dashboard() {
     window.location.href = "/";
   };
 
+  const saveEdit = (id: number) => {
+    if (!editedText.trim()) return;
+    setTodos(
+      todos.map((todo) =>
+        todo.id === id ? { ...todo, text: editedText } : todo
+      )
+    );
+    setEditingId(null);
+    setEditedText("");
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center  bg-linear-to-br from-primary/10 via-background to-secondary/10 ">
+    <main className="flex min-h-screen flex-col items-center bg-linear-to-br from-primary/10 via-background to-secondary/10">
       <header className="flex justify-between w-5xl mt-10">
         <div className="w-full">
           <h1 className="text-4xl font-bold text-indigo-600">Task Flow</h1>
@@ -107,7 +120,7 @@ export default function Dashboard() {
           key={todo.id}
           className="flex items-center justify-between w-full max-w-5xl bg-white shadow-sm rounded-lg p-4 mb-3"
         >
-          {/* Left: Checkbox + Todo Text */}
+          {/* Left: Checkbox + Text or Edit Input */}
           <div className="flex items-center gap-3">
             <input
               type="checkbox"
@@ -116,21 +129,41 @@ export default function Dashboard() {
               className="h-5 w-5 cursor-pointer"
             />
 
-            <span
-              className={`text-md ${
-                todo.completed ? "line-through text-gray-400" : "text-gray-700"
-              }`}
-            >
-              {todo.text}
-            </span>
+            {editingId === todo.id ? (
+              <input
+                value={editedText}
+                onChange={(e) => setEditedText(e.target.value)}
+                className="border p-1 rounded text-gray-800 w-200"
+                autoFocus
+              />
+            ) : (
+              <span
+                className={`text-md ${
+                  todo.completed ? "line-through text-gray-400" : "text-gray-700"
+                }`}
+              >
+                {todo.text}
+              </span>
+            )}
           </div>
 
-          {/* Right: Edit + Delete Icons */}
+          {/* Right: Edit or Save + Delete Buttons */}
           <div className="flex items-center gap-4">
-            <Pencil
-              className="cursor-pointer hover:text-blue-600"
-              onClick={() => alert("Edit coming soon ✨")}
-            />
+            {editingId === todo.id ? (
+              <Check
+                className="cursor-pointer text-green-600"
+                onClick={() => saveEdit(todo.id)}
+              />
+            ) : (
+              <Pencil
+                className="cursor-pointer hover:text-blue-600"
+                onClick={() => {
+                  setEditingId(todo.id);
+                  setEditedText(todo.text);
+                }}
+              />
+            )}
+
             <Trash2
               className="cursor-pointer hover:text-red-600"
               onClick={() => deleteTodo(todo.id)}
